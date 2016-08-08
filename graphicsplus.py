@@ -28,7 +28,7 @@ def gplus_get_center(obj):
         return Point((max(xs)+min(xs))/2, (max(ys)+min(ys))/2)
     elif isinstance(obj, Image):
         return obj.getAnchor()
-    elif type(obj) in [Line, Oval, Circle, Rectangle]:
+    elif isinstance(obj, _BBox):
         return obj.getCenter()
     else:
         raise RuntimeError("Argument type not supported")
@@ -92,7 +92,6 @@ def gplus_dump_line(line):
     attrs = {
         "type":"Line",
         "config":line.config,
-        "center":gplus_dump_point(gplus_get_center(line)),
         "offset":gplus_dump_point(Point(*gplus_relation(line.p1, gplus_get_center(line))))
     }
     return json.dumps(attrs)
@@ -106,10 +105,48 @@ def gplus_parse_line(s, c):
     l.config = parsed["config"]
     return l
 
+def gplus_dump_rect(rect):
+    """Reserved for GraphicsPlus internal use"""
+    assert type(rect) == Rectangle
+    attrs = {
+        "type":"Rectangle",
+        "config":rect.config,
+        "offset":gplus_dump_point(gplus_relation(rect.p1, gplus_get_center(rect)))
+    }
+    return json.dumps(attrs)
+
+def gplus_parse_rect(s, c):
+    """Reserved for GraphicsPlus internal use"""
+    parsed = json.loads(s)
+    assert parsed["type"] == "Rectangle"
+    offset = gplus_parse_point(parsed["offset"])
+    rect = Rectangle(gplus_vector_apply(c, offset), gplus_vector_apply(c, gplus_invert_point(offset)))
+    rect.config = parsed["config"]
+    return rect
+
+def gplus_dump_text(text):
+    """Reserved for GraphicsPlus internal use"""
+    assert type(text) == Text
+    attrs = {
+        "type":"Text",
+        "config":text.config
+    }
+    return json.dumps(attrs)
+
+def gplus_parse_text(t, a):
+    """Reserved for GraphicsPlus internal use"""
+    parsed = json.loads(t)
+    assert parsed["type"] == "Text"
+    tex = Text(a, "")
+    tex.config = attrs["config"]
+    return tex
+
 gplus_types = {
     "Polygon": (gplus_dump_poly, gplus_parse_poly),
     "Line": (gplus_dump_line, gplus_parse_line),
     "Point": (gplus_dump_point, gplus_parse_point),
+    "Rectangle": (gplus_dump_rect, gplus_parse_rect),
+    "Text": (gplus_dump_text, gplus_parse_text)
 }
 
 def gplus_seek_types(objtype):
@@ -191,4 +228,4 @@ def gplus_parse_window(s, title="Graphics Window"):
 
 gplus_types["GraphWin"] = (gplus_dump_window, gplus_parse_window)
 
-gplus_supported_types = gplus_types.keys()
+gplus_supported_types = list(gplus_types.keys())
