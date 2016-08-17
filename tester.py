@@ -1,14 +1,13 @@
 from graphicsplus import *
 
 def test():
+    # directly extracted from graphics.py with some modifications.
     win = GraphWin()
     win.setCoords(0,0,10,10)
     t = Text(Point(5,5), "Centered Text")
     t.draw(win)
     p = Polygon(Point(1,1), Point(5,3), Point(2,7))
     p.draw(win)
-    e = Entry(Point(5,6), 10)
-    e.draw(win)
     win.getMouse()
     p.setFill("red")
     p.setOutline("blue")
@@ -16,10 +15,6 @@ def test():
     s = ""
     for pt in p.getPoints():
         s = s + "(%0.1f,%0.1f) " % (pt.getX(), pt.getY())
-    t.setText(e.getText())
-    e.setFill("green")
-    e.setText("Spam!")
-    e.move(2,0)
     win.getMouse()
     p.move(2,3)
     s = ""
@@ -28,7 +23,6 @@ def test():
     t.setText(s)
     win.getMouse()
     p.undraw()
-    e.undraw()
     t.setStyle("bold")
     win.getMouse()
     t.setStyle("normal")
@@ -41,5 +35,6 @@ def test():
     win.getMouse()
     t.setFace("arial")
     t.setSize(20)
-    win.getMouse()
-    win.close()
+    return win
+
+export_graphics(test(), "testResults.window")
